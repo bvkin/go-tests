@@ -1,6 +1,8 @@
 package clockface
 
 import (
+	"bytes"
+	"encoding/xml"
 	"math"
 	"testing"
 	"time"
@@ -37,13 +39,34 @@ func roughlyEqualPoint(a, b Point) bool {
 }
 
 // Test second hand at 30 seconds
-func TestSecondHandAt30Seconds(t *testing.T) {
-	tm := time.Date(1337, time.January, 1, 0, 0, 30, 0, time.UTC)
+// func TestSecondHandAt30Seconds(t *testing.T) {
+// 	tm := time.Date(1337, time.January, 1, 0, 0, 30, 0, time.UTC)
 
-	want := Point{X: 150, Y: 150 + 90}
-	got := SecondHand(tm)
+// 	want := Point{X: 150, Y: 150 + 90}
+// 	got := SecondHand(tm)
 
-	if got != want {
-		t.Errorf("Got %v, wanted %v", got, want)
+// 	if got != want {
+// 		t.Errorf("Got %v, wanted %v", got, want)
+// 	}
+// }
+
+func TestSVGWriterAtMidnight(t *testing.T) {
+	tm := time.Date(1337, time.January, 1, 0, 0, 0, 0, time.UTC)
+
+	b := bytes.Buffer{}
+	SVGWriter(&b, tm)
+
+	svg := Svg{}
+	xml.Unmarshal(b.Bytes(), &svg)
+
+	x2 := "150"
+	y2 := "60"
+
+	for _, line := range svg.Line {
+		if line.X2 == x2 && line.Y2 == y2 {
+			return
+		}
 	}
+
+	t.Errorf("Expected to find the second hand with x2 of %+v and y2 of %+v, in the SVG output %v", x2, y2, b.String())
 }
